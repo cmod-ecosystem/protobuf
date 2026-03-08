@@ -1538,7 +1538,7 @@ void MessageGenerator::GenerateMapEntryClassDefinition(io::Printer* p) {
           template <typename = void>
           explicit constexpr $classname$($pbi$::ConstantInitialized);
           explicit $classname$($pb$::Arena* $nullable$ arena);
-          static constexpr const void* $nonnull$ internal_default_instance() {
+          static constexpr const void* $nonnull$ internal_message_globals() {
             return &_$classname$_globals_;
           }
 
@@ -2252,7 +2252,7 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* p) {
           $descriptor_accessor$;
           $get_descriptor$;
           $nodiscard $static const $classname$& default_instance() {
-            return *$pbi$::MessageGlobalsBase::default_instance<$classname$>(
+            return *$pbi$::MessageGlobalsBase::ToDefaultInstance<$classname$>(
                 &$msg_globals$);
           }
           $decl_oneof$;
@@ -2547,18 +2547,19 @@ void MessageGenerator::GenerateClassMethods(io::Printer* p) {
   }
 
   if (ShouldSplit(descriptor_, options_)) {
-    p->Emit({{"split_default", SplitDefaultInstanceName(descriptor_, options_)},
-             {"default", MsgGlobalsInstanceName(descriptor_, options_)}},
-            R"cc(
-              void $classname$::PrepareSplitMessageForWrite() {
-                if (ABSL_PREDICT_TRUE(IsSplitMessageDefault())) {
-                  void* chunk = $pbi$::CreateSplitMessageGeneric(
-                      GetArena(), &$split_default$, sizeof(Impl_::Split), this,
-                      &$default$);
-                  $split$ = reinterpret_cast<Impl_::Split*>(chunk);
-                }
-              }
-            )cc");
+    p->Emit(
+        {{"split_default", SplitDefaultInstanceName(descriptor_, options_)},
+         {"globals", MsgGlobalsInstanceName(descriptor_, options_)}},
+        R"cc(
+          void $classname$::PrepareSplitMessageForWrite() {
+            if (ABSL_PREDICT_TRUE(IsSplitMessageDefault())) {
+              void* chunk = $pbi$::CreateSplitMessageGeneric(
+                  GetArena(), &$split_default$, sizeof(Impl_::Split), this,
+                  ::_pbi::MessageGlobalsBase::ToDefaultInstance(&$globals$));
+              $split$ = reinterpret_cast<Impl_::Split*>(chunk);
+            }
+          }
+        )cc");
   }
 
   GenerateVerify(p);
@@ -5651,9 +5652,13 @@ void MessageGenerator::GenerateSourceDefaultInstance(io::Printer* p) {
 #endif  // defined(PROTOBUF_CONSTINIT_DEFAULT_INSTANCES)
             ~$type$() {}
             union {
-              $classname$ _default;
+              PROTOBUF_ALIGNAS(::_pbi::kMaxMessageAlignment) $classname$ _default;
             };
           };
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+          static_assert(offsetof($type$, _default) ==
+                        ::_pbi::MessageGlobalsBase::OffsetToDefault());
+#endif  // PROTOBUF_MESSAGE_GLOBALS
 
           PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT$ dllexport_decl$
               PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 $type$ $name$;
@@ -5671,11 +5676,15 @@ void MessageGenerator::GenerateSourceDefaultInstance(io::Printer* p) {
             ~$type$() {}
             //~ _default must be the first member.
             union {
-              $classname$ _default;
+              PROTOBUF_ALIGNAS(::_pbi::kMaxMessageAlignment) $classname$ _default;
             };
             ::_pbi::WeakDescriptorDefaultTail tail = {
-                file_default_instances + $index$, sizeof($type$)};
+                file_message_globals + $index$, sizeof($type$)};
           };
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+          static_assert(offsetof($type$, _default) ==
+                        ::_pbi::MessageGlobalsBase::OffsetToDefault());
+#endif  // PROTOBUF_MESSAGE_GLOBALS
 
           PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT$ dllexport_decl$
               PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 $type$ $name$
@@ -5688,9 +5697,13 @@ void MessageGenerator::GenerateSourceDefaultInstance(io::Printer* p) {
             constexpr $type$() : _default(::_pbi::ConstantInitialized{}) {}
             ~$type$() {}
             union {
-              $classname$ _default;
+              PROTOBUF_ALIGNAS(::_pbi::kMaxMessageAlignment) $classname$ _default;
             };
           };
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+          static_assert(offsetof($type$, _default) ==
+                        ::_pbi::MessageGlobalsBase::OffsetToDefault());
+#endif  // PROTOBUF_MESSAGE_GLOBALS
 
           PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT$ dllexport_decl$
               PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 $type$ $name$;
