@@ -199,7 +199,10 @@ void RepeatedPtrFieldBase::MergeFromConcreteMessage(
   Prefetch5LinesFrom1Line(&from);
   ABSL_DCHECK_EQ(arena, GetArena());
   ABSL_DCHECK_NE(&from, this);
-  int new_size = current_size_ + from.current_size_;
+  int64_t new_size = static_cast<int64_t>(current_size_) +
+                     static_cast<int64_t>(from.current_size_);
+  ABSL_CHECK_LE(new_size, static_cast<int64_t>(std::numeric_limits<int>::max()))
+      << "Input too large";
   void** dst = InternalReserve(new_size, arena);
   const void* const* src = from.elements();
   auto end = src + from.current_size_;
