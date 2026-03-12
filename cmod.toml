@@ -1,0 +1,44 @@
+[package]
+name = "protobuf"
+version = "7.35.0"
+edition = "2023"
+authors = []
+
+[module]
+name = "com.github.cmod_ecosystem.protobuf"
+root = "src/lib.cppm"
+
+[dependencies]
+"github.com/cmod-ecosystem/abseil-cpp" = { branch = "master" }
+
+[dev-dependencies]
+
+[build-dependencies]
+
+[features]
+
+[compat]
+cpp = ">=17"
+platforms = []
+
+[toolchain]
+compiler = "clang"
+cxx_standard = "17"
+
+[build]
+type = "static-lib"
+parallel = true
+incremental = true
+include_dirs = ["src"]
+extra_flags = []
+sources = []
+exclude = []
+
+[target]
+
+# ==========================================================
+# TODO: Manual dependency mapping needed
+# ==========================================================
+# find_package(Threads) -> system threading library
+# find_package(ZLIB) -> optional zlib compression support
+#   e.g. "github.com/madler/zlib" = "^1.0"
