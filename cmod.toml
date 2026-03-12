@@ -9,7 +9,7 @@ name = "com.github.cmod_ecosystem.protobuf"
 root = "src/lib.cppm"
 
 [dependencies]
-"github.com/cmod-ecosystem/abseil-cpp" = { branch = "master" }
+"github.com/cmod-ecosystem/abseil-cpp" = { branch = "cmod-support" }
 
 [dev-dependencies]
 
@@ -32,7 +32,7 @@ incremental = true
 include_dirs = ["src"]
 extra_flags = []
 sources = []
-exclude = []
+exclude = ["src/google/protobuf/compiler/cpp/tools/*"]
 
 [target]
 
